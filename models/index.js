@@ -29,7 +29,7 @@ const Product = sequelize.define("product", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   title: { type: DataTypes.STRING, unique: true },
   price: { type: DataTypes.INTEGER, allowNull: false },
-  sale: { type: DataTypes.FLOAT },
+  sale: { type: DataTypes.FLOAT, defaultValue: 0, allowNull: false },
   rating: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
   img: { type: DataTypes.STRING, allowNull: false, unique: true },
 });
@@ -44,6 +44,11 @@ const Category = sequelize.define("category", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   code: { type: DataTypes.STRING, unique: true, allowNull: false },
 });
+
+const Subcategory = sequelize.define("subcategory", {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  code: { type: DataTypes.STRING, unique: true, allowNull: false },
+})
 
 User.hasOne(Basket);
 Basket.belongsTo(User);
@@ -64,6 +69,8 @@ ProductInfo.belongsTo(Product);
 
 Category.hasMany(Product)
 Product.belongsTo(Category)
+Category.hasMany(Subcategory)
+Subcategory.belongsTo(Category)
 
 module.exports = {
   User,

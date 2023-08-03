@@ -4,12 +4,12 @@ const { DataTypes } = require("sequelize");
 
 const User = sequelize.define("user", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  email: { type: DataTypes.STRING, unique: true },
-  password: { type: DataTypes.STRING },
+  email: { type: DataTypes.STRING, unique: true, allowNull: false },
+  password: { type: DataTypes.STRING, allowNull: false },
   role: { type: DataTypes.STRING, defaultValue: "USER" },
-  name: { type: DataTypes.STRING },
-  surname: { type: DataTypes.STRING },
-  phoneNumber: { type: DataTypes.STRING, unique: true },
+  name: { type: DataTypes.STRING, allowNull: false },
+  surname: { type: DataTypes.STRING, allowNull: false },
+  phoneNumber: { type: DataTypes.STRING, unique: true, allowNull: false },
 });
 
 const Rating = sequelize.define("rating", {
@@ -41,36 +41,34 @@ const ProductInfo = sequelize.define("product_info", {
 });
 
 const Category = sequelize.define("category", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  code: { type: DataTypes.STRING, unique: true, allowNull: false },
+  code: { type: DataTypes.STRING, unique: true, primaryKey: true },
 });
 
 const Subcategory = sequelize.define("subcategory", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  code: { type: DataTypes.STRING, unique: true, allowNull: false },
-})
+  code: { type: DataTypes.STRING, unique: true, primaryKey: true },
+});
 
-User.hasOne(Basket);
-Basket.belongsTo(User);
-User.hasMany(Rating);
-Rating.belongsTo(User);
+User.hasOne(Basket)
+Basket.belongsTo(User)
 
-Basket.hasMany(BasketProduct);
-BasketProduct.belongsTo(Basket);
+User.hasMany(Rating)
+Rating.belongsTo(User)
 
-BasketProduct.hasOne(Product);
-Product.belongsTo(BasketProduct);
-Product.hasMany(Rating);
-Product.hasMany(BasketProduct);
-BasketProduct.belongsTo(Product);
-Rating.belongsTo(Product);
-Product.hasMany(ProductInfo);
-ProductInfo.belongsTo(Product);
+Basket.hasMany(BasketProduct)
+BasketProduct.belongsTo(Basket)
 
 Category.hasMany(Product)
 Product.belongsTo(Category)
-Category.hasMany(Subcategory)
-Subcategory.belongsTo(Category)
+
+Product.hasMany(Rating)
+Rating.belongsTo(Product)
+
+Product.hasMany(BasketProduct)
+BasketProduct.belongsTo(Product)
+BasketProduct.hasOne(Product)
+
+Product.hasMany(ProductInfo)
+ProductInfo.belongsTo(Product)
 
 module.exports = {
   User,

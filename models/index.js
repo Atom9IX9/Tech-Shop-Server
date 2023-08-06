@@ -42,33 +42,36 @@ const ProductInfo = sequelize.define("product_info", {
 
 const Category = sequelize.define("category", {
   code: { type: DataTypes.STRING, unique: true, primaryKey: true },
+  en: { type: DataTypes.STRING, unique: true, allowNull: false },
+  ua: { type: DataTypes.STRING, unique: true, allowNull: false },
+  ru: { type: DataTypes.STRING, unique: true, allowNull: false }
 });
 
 const Subcategory = sequelize.define("subcategory", {
   code: { type: DataTypes.STRING, unique: true, primaryKey: true },
 });
 
-User.hasOne(Basket)
-Basket.belongsTo(User)
+User.hasOne(Basket);
+Basket.belongsTo(User);
 
-User.hasMany(Rating)
-Rating.belongsTo(User)
+User.hasMany(Rating);
+Rating.belongsTo(User);
 
-Basket.hasMany(BasketProduct)
-BasketProduct.belongsTo(Basket)
+Basket.hasMany(BasketProduct);
+BasketProduct.belongsTo(Basket);
 
-Category.hasMany(Product)
-Product.belongsTo(Category)
+Category.hasMany(Product);
+Product.belongsTo(Category);
 
-Product.hasMany(Rating)
-Rating.belongsTo(Product)
+Product.hasMany(BasketProduct);
+BasketProduct.belongsTo(Product);
+Product.belongsTo(BasketProduct)
 
-Product.hasMany(BasketProduct)
-BasketProduct.belongsTo(Product)
-BasketProduct.hasOne(Product)
+Product.hasMany(Rating);
+Rating.belongsTo(Product);
 
-Product.hasMany(ProductInfo)
-ProductInfo.belongsTo(Product)
+Product.hasMany(ProductInfo);
+ProductInfo.belongsTo(Product);
 
 module.exports = {
   User,

@@ -5,24 +5,24 @@ require("dotenv").config();
 const bcrypt = require("bcrypt");
 const jsonwebtoken = require("jsonwebtoken");
 
-const generateJwt = (id, email, role) => {
+const generateJwt = (id, email, role, name, surname) => {
   return jsonwebtoken.sign(
-    { id: id, email, role },
+    { id: id, email, role, name, surname },
     process.env.DEV_KEY,
     { expiresIn: "24h" }
-  )
-}
+  );
+};
 
 const signUp = async (req, res, next) => {
   try {
     const { email, password, role, name, surname, phoneNumber } = req.body;
     if (!email || !password) {
-      return next(ApiError.incorrectRequest("incorrect_email_or_password"));
+      return next(ApiError.incorrectRequest("enter_email_or_password"));
     }
 
     const isExistUser = await User.findOne({ where: { email } });
     if (isExistUser) {
-      next(ApiError.forbidden("user_already_exists"));
+      return next(ApiError.forbidden("user_already_exists"));
     }
 
     const hashPassword = await bcrypt.hash(password, 5);
@@ -35,10 +35,13 @@ const signUp = async (req, res, next) => {
       phoneNumber,
     });
     const basket = await Basket.create({ userId: user.id });
-    const jwt = generateJwt(user.id, email, role);
-    return res.json({ token: jwt });
+    const token = generateJwt(user.id, email, role, name, surname);
+    return res.json({
+      token,
+      user: jsonwebtoken.verify(token, process.env.DEV_KEY),
+    });
   } catch (error) {
-    next(ApiError.incorrectRequest(error.message));
+    return next(ApiError.incorrectRequest(error.message));
   }
 };
 const signIn = async (req, res, next) => {
@@ -46,24 +49,33 @@ const signIn = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      return next(ApiError.forbidden("incorrect_email_or_password"))
+      return next(ApiError.forbidden("incorrect_email_or_password"));
     }
-    let comparePassword = bcrypt.compareSync(password, user.password)
-    if(!comparePassword) {
-      return next(ApiError.forbidden("incorrect_email_or_password"))
+    let comparePassword = bcrypt.compareSync(password, user.password);
+    if (!comparePassword) {
+      return next(ApiError.forbidden("incorrect_email_or_password"));
     }
-    const jwt = generateJwt(user.id, email, user.role)
-    return res.json({token: jwt})
+    const token = generateJwt(
+      user.id,
+      email,
+      user.role,
+      user.name,
+      user.surname
+    );
+    return res.json({
+      token,
+      user: jsonwebtoken.verify(token, process.env.DEV_KEY),
+    });
   } catch (error) {
-    next(ApiError.incorrectRequest(error.message))
+    next(ApiError.incorrectRequest(error.message));
   }
 };
 const check = async (req, res, next) => {
   try {
-    const jwt = generateJwt(req.user.id, req.user.email, req.user.role)
-    res.json({token: jwt})
+    const token = generateJwt(req.user.id, req.user.email, req.user.role);
+    res.json({ token, user: req.user });
   } catch (error) {
-    next(ApiError.incorrectRequest(error.message))
+    next(ApiError.incorrectRequest(error.message));
   }
 };
 

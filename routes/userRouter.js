@@ -1,5 +1,5 @@
 const { check, signIn, signUp } = require("../controllers/userController");
-const authMiddleware = require("../middleware/authMiddleware")
+const authMiddleware = require("../middleware/authMiddleware");
 
 const Router = require("express");
 

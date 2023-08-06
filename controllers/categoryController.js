@@ -3,11 +3,12 @@ const { Category } = require("../models/index");
 
 const create = async (req, res, next) => {
   try {
-    const { code } = req.body;
-    const category = await Category.create({ code });
+    const { en, ua, ru } = req.body;
+    const code = en.toLowerCase().split(" ").join("_")
+    const category = await Category.create({ en, ua, ru, code });
     return res.json(category);
   } catch (error) {
-    next(ApiError.incorrectRequest(error.message))
+    return next(ApiError.incorrectRequest(error.message))
   }
 };
 

@@ -5,11 +5,11 @@ require("dotenv").config();
 const bcrypt = require("bcrypt");
 const jsonwebtoken = require("jsonwebtoken");
 
-const generateJwt = (id, email, role, name, surname) => {
+const generateJwt = (id, email, role, name, surname, rememberMe = false) => {
   return jsonwebtoken.sign(
     { id: id, email, role, name, surname },
     process.env.DEV_KEY,
-    { expiresIn: "24h" }
+    { expiresIn: rememberMe ? "31d" : "10h" }
   );
 };
 
@@ -20,9 +20,19 @@ const signUp = async (req, res, next) => {
       return next(ApiError.incorrectRequest("enter_email_or_password"));
     }
 
-    const isExistUser = await User.findOne({ where: { email } });
-    if (isExistUser) {
-      return next(ApiError.forbidden("user_already_exists"));
+    const isExistEmail = await User.findOne({ where: { email } });
+    if (isExistEmail) {
+      return next(
+        ApiError.forbidden("email_already_exists", { field: "email" })
+      );
+    }
+    const isExistPhoneNumber = await User.findOne({ where: { phoneNumber } });
+    if (isExistPhoneNumber) {
+      return next(
+        ApiError.forbidden("phone_number_already_exists", {
+          field: "phoneNumber",
+        })
+      );
     }
 
     const hashPassword = await bcrypt.hash(password, 5);
@@ -46,7 +56,7 @@ const signUp = async (req, res, next) => {
 };
 const signIn = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return next(ApiError.forbidden("incorrect_email_or_password"));
@@ -60,7 +70,8 @@ const signIn = async (req, res, next) => {
       email,
       user.role,
       user.name,
-      user.surname
+      user.surname,
+      rememberMe
     );
     return res.json({
       token,
@@ -72,8 +83,7 @@ const signIn = async (req, res, next) => {
 };
 const check = async (req, res, next) => {
   try {
-    const token = generateJwt(req.user.id, req.user.email, req.user.role);
-    res.json({ token, user: req.user });
+    res.json(req.user);
   } catch (error) {
     next(ApiError.incorrectRequest(error.message));
   }

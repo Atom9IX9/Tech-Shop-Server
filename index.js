@@ -19,7 +19,7 @@ app.use("/api", router);
 // errors
 app.use(errorHandler);
 
-const PORT = process.env.SERVER_PORT || 3030;
+const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {

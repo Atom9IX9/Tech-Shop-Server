@@ -2,6 +2,7 @@ const uuid = require("uuid");
 const path = require("path");
 const { Product, Like } = require("../models");
 const ApiError = require("../err/ApiError");
+const { Op } = require("sequelize")
 
 const create = async (req, res, next) => {
   try {
@@ -58,12 +59,12 @@ const addLike = async (req, res, next) => {
   try {
     const { productId } = req.params;
     if (!productId) {
-      return next(ApiError.incorrectRequest("product's id is required"))
+      return next(ApiError.incorrectRequest("product's id is required"));
     }
 
-    const like = await Like.create({ userId: req.user.id, productId })
+    const like = await Like.create({ userId: req.user.id, productId });
 
-    return res.json(like)
+    return res.json({ productId });
   } catch (error) {
     next(ApiError.incorrectRequest(error.message));
   }
@@ -72,27 +73,50 @@ const removeLike = async (req, res, next) => {
   try {
     const { productId } = req.params;
     if (!productId) {
-      return next(ApiError.incorrectRequest("product's id is required"))
+      return next(ApiError.incorrectRequest("product's id is required"));
     }
 
-    const deletedLikeId = await Like.destroy({where: {userId: req.user.id, productId}})
+    const deletedLike = await Like.destroy({
+      where: { userId: req.user.id, productId },
+    });
 
-    return res.json({deletedLikeId})
+    return res.json({ productId });
   } catch (error) {
-    next(ApiError.incorrectRequest(error.message))
+    next(ApiError.incorrectRequest(error.message));
   }
-}
+};
 const getLikedProductIds = async (req, res, next) => {
   try {
-    const likes = await Like.findAll({where: {userId: req.user.id}})
+    const likes = await Like.findAll({ where: { userId: req.user.id } });
 
-    const likedProductIds = likes.map(like => {
-      return like.productId
+    const likedProductIds = likes.map((like) => {
+      return like.productId;
+    });
+
+    return res.json({ likedProductIds });
+  } catch (error) {
+    next(ApiError.incorrectRequest(error.message));
+  }
+};
+const getLikedProducts = async (req, res, next) => {
+  try {
+    const userLikes = await Like.findAll({where: { userId: req.user.id }})
+
+    const likedProductIds = userLikes.map((like) => {
+      return like.productId;
+    });
+
+    const likedProducts = await Product.findAll({
+      where: {
+        id: {
+          [Op.in]: likedProductIds
+        }
+      }
     })
 
-    return res.json({likedProductIds})
+    return res.json(likedProducts)
   } catch (error) {
-    next(ApiError.incorrectRequest(error.message))
+    next(ApiError.incorrectRequest(error.message));
   }
 }
 
@@ -102,5 +126,6 @@ module.exports = {
   getOne,
   addLike,
   removeLike,
-  getLikedProductIds
+  getLikedProductIds,
+  getLikedProducts
 };

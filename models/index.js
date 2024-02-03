@@ -48,7 +48,8 @@ const Category = sequelize.define("category", {
   code: { type: DataTypes.STRING, unique: true, primaryKey: true },
   en: { type: DataTypes.STRING, unique: true, allowNull: false },
   ua: { type: DataTypes.STRING, unique: true, allowNull: false },
-  ru: { type: DataTypes.STRING, unique: true, allowNull: false }
+  ru: { type: DataTypes.STRING, unique: true, allowNull: false },
+  icon: { type: DataTypes.STRING, allowNull: false },
 });
 
 const Subcategory = sequelize.define("subcategory", {

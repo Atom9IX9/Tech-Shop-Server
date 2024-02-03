@@ -45,7 +45,7 @@ const signUp = async (req, res, next) => {
       phoneNumber,
     });
     const basket = await Basket.create({ userId: user.id });
-    const token = generateJwt(user.id, email, role, name, surname);
+    const token = generateJwt(user.id, email, user.role, name, surname);
     return res.json({
       token,
       user: jsonwebtoken.verify(token, process.env.DEV_KEY),

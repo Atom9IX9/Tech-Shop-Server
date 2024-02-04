@@ -18,7 +18,7 @@ const create = async (req, res, next) => {
       icon: fileName,
     });
 
-    icon.mv(path.resolve(__dirname, "..", "static", fileName));
+    icon.mv(path.resolve(__dirname, "..", "public", fileName));
     return res.json(category);
   } catch (error) {
     return next(ApiError.incorrectRequest(error.message));

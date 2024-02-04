@@ -17,7 +17,7 @@ const create = async (req, res, next) => {
       img: fileName,
     });
 
-    img.mv(path.resolve(__dirname, "..", "static", fileName));
+    img.mv(path.resolve(__dirname, "..", "public", fileName));
     return res.json(product);
   } catch (error) {
     next(ApiError.incorrectRequest(error.message));

@@ -6,12 +6,14 @@ const { Op } = require("sequelize")
 
 const create = async (req, res, next) => {
   try {
-    const { title, price, categoryCode } = req.body;
+    const { en, ua, ru, price, categoryCode } = req.body;
     const { img } = req.files;
     let fileName = uuid.v4() + ".jpg";
 
     const product = await Product.create({
-      title,
+      en,
+      ua,
+      ru,
       price,
       categoryCode,
       img: fileName,

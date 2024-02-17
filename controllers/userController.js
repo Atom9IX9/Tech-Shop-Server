@@ -83,7 +83,8 @@ const signIn = async (req, res, next) => {
 };
 const check = async (req, res, next) => {
   try {
-    res.json(req.user);
+    const checkUser = await User.findOne({where: {id: req.user.id}})
+    res.json({...req.user, role: checkUser.role});
   } catch (error) {
     next(ApiError.incorrectRequest(error.message));
   }

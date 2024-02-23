@@ -83,8 +83,19 @@ const signIn = async (req, res, next) => {
 };
 const check = async (req, res, next) => {
   try {
-    const checkUser = await User.findOne({where: {id: req.user.id}})
-    res.json({...req.user, role: checkUser.role});
+    const checkUser = await User.findOne({ where: { id: req.user.id } });
+    if (!checkUser) {
+      return next(ApiError.forbidden("incorrect_user"));
+    }
+    const token = generateJwt(
+      checkUser.id,
+      checkUser.email,
+      checkUser.role,
+      checkUser.name,
+      checkUser.surname,
+      req.user.rememberMe
+    );
+    res.json({ token, user: jsonwebtoken.verify(token, process.env.DEV_KEY) });
   } catch (error) {
     next(ApiError.incorrectRequest(error.message));
   }

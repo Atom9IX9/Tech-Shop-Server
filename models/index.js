@@ -38,6 +38,9 @@ const Product = sequelize.define("product", {
   sale: { type: DataTypes.FLOAT, defaultValue: 0, allowNull: false },
   rating: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
   img: { type: DataTypes.STRING, allowNull: false, unique: true },
+  descriptionEn: { type: DataTypes.STRING, allowNull: true },
+  descriptionUa: { type: DataTypes.STRING, allowNull: true },
+  descriptionRu: { type: DataTypes.STRING, allowNull: true }
 });
 
 const ProductInfo = sequelize.define("product_info", {

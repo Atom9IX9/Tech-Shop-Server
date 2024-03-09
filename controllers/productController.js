@@ -2,7 +2,7 @@ const uuid = require("uuid");
 const path = require("path");
 const { Product, Like } = require("../models");
 const ApiError = require("../err/ApiError");
-const { Op, where } = require("sequelize");
+const { Op } = require("sequelize");
 
 const create = async (req, res, next) => {
   try {
@@ -44,19 +44,29 @@ const updateDescription = async (req, res, next) => {
 
     const product = Product.update(
       { descriptionEn: en, descriptionRu: ru, descriptionUa: ua },
-      {where: { id }}
+      { where: { id } }
     );
 
-    return res.json(product)
+    return res.json(product);
   } catch (error) {
     next(ApiError.incorrectRequest(error.message));
   }
 };
 const getAll = async (req, res, next) => {
   try {
-    let { category, pageSize, page } = req.query;
+    let { category, pageSize, page, like, likeLng } = req.query;
     let limit = Number(pageSize) || 10;
     let offset = limit * ((page || 1) - 1);
+    const attributes = [
+      "id",
+      "en",
+      "ua",
+      "ru",
+      "price",
+      "sale",
+      "img",
+      "categoryCode",
+    ];
 
     let products;
 
@@ -66,20 +76,36 @@ const getAll = async (req, res, next) => {
         limit,
         offset,
       });
+    } else if (like) {
+      if (!likeLng) {
+        return next(ApiError.incorrectRequest("likeLng_is_undefined"));
+      }
+      let where = {};
+      switch (likeLng) {
+        case "en": {
+          where = { en: { [Op.like]: `%${like}%` } };
+          break;
+        }
+        case "ua": {
+          where = { ua: { [Op.like]: `%${like}%` } };
+          break;
+        }
+        case "ru": {
+          where = { ru: { [Op.like]: `%${like}%` } };
+          break;
+        }
+      }
+      products = await Product.findAndCountAll({
+        limit,
+        offset,
+        where,
+        attributes,
+      });
     } else {
       products = await Product.findAndCountAll({
         limit,
         offset,
-        attributes: [
-          "id",
-          "en",
-          "ua",
-          "ru",
-          "price",
-          "sale",
-          "img",
-          "categoryCode",
-        ],
+        attributes,
       });
     }
 
@@ -173,5 +199,5 @@ module.exports = {
   removeLike,
   getLikedProductIds,
   getLikedProducts,
-  updateDescription
+  updateDescription,
 };

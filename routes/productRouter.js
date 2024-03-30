@@ -6,7 +6,8 @@ const {
   removeLike,
   getLikedProductIds,
   getLikedProducts,
-  updateDescription
+  updateDescription,
+  addRate
 } = require("../controllers/productController");
 
 const Router = require("express");
@@ -17,11 +18,12 @@ const router = new Router();
 
 router.post("/", checkRole("ADMIN"), create);
 router.post("/like/:productId", authMiddleware, addLike);
+router.post("/rating/:productId", authMiddleware, addRate);
 router.delete("/like/:productId", authMiddleware, removeLike);
 router.get("/liked-ids", authMiddleware, getLikedProductIds);
 router.get("/liked-products", authMiddleware, getLikedProducts);
 router.put("/:id/description", checkRole("ADMIN"), updateDescription)
 router.get("/", getAll);
-router.get("/:id", getOne);
+router.get("/:id/user/:userId", getOne);
 
 module.exports = router;

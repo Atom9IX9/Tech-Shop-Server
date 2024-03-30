@@ -19,7 +19,7 @@ const Rating = sequelize.define("rating", {
 
 const Like = sequelize.define("like", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-})
+});
 
 const Basket = sequelize.define("basket", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -36,11 +36,10 @@ const Product = sequelize.define("product", {
   ru: { type: DataTypes.STRING, unique: true },
   price: { type: DataTypes.INTEGER, allowNull: false },
   sale: { type: DataTypes.FLOAT, defaultValue: 0, allowNull: false },
-  rating: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
-  img: { type: DataTypes.STRING, allowNull: false, unique: true },
-  descriptionEn: { type: DataTypes.STRING, allowNull: true },
-  descriptionUa: { type: DataTypes.STRING, allowNull: true },
-  descriptionRu: { type: DataTypes.STRING, allowNull: true }
+  imgs: { type: DataTypes.STRING, allowNull: false, unique: true },
+  descriptionEn: { type: DataTypes.TEXT, allowNull: true },
+  descriptionUa: { type: DataTypes.TEXT, allowNull: true },
+  descriptionRu: { type: DataTypes.TEXT, allowNull: true },
 });
 
 const ProductInfo = sequelize.define("product_info", {
@@ -75,7 +74,7 @@ Product.belongsTo(Category);
 
 Product.hasMany(BasketProduct);
 BasketProduct.belongsTo(Product);
-Product.belongsTo(BasketProduct)
+Product.belongsTo(BasketProduct);
 
 Product.hasMany(Rating);
 Rating.belongsTo(Product);
@@ -83,11 +82,11 @@ Rating.belongsTo(Product);
 Product.hasMany(ProductInfo);
 ProductInfo.belongsTo(Product);
 
-User.hasMany(Like)
-Like.belongsTo(User)
+User.hasMany(Like);
+Like.belongsTo(User);
 
-Product.hasMany(Like)
-Like.belongsTo(Product)
+Product.hasMany(Like);
+Like.belongsTo(Product);
 
 module.exports = {
   User,
@@ -97,5 +96,5 @@ module.exports = {
   Product,
   ProductInfo,
   Rating,
-  Like
+  Like,
 };

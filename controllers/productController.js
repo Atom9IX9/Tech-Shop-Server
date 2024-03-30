@@ -1,6 +1,6 @@
 const uuid = require("uuid");
 const path = require("path");
-const { Product, Like } = require("../models");
+const { Product, Like, Rating } = require("../models");
 const ApiError = require("../err/ApiError");
 const { Op } = require("sequelize");
 
@@ -16,8 +16,8 @@ const create = async (req, res, next) => {
       descriptionUa,
       descriptionRu,
     } = req.body;
-    const { img } = req.files;
-    let fileName = uuid.v4() + ".jpg";
+    const { imgs } = req.files;
+    let fileNames = imgs.map(() => uuid.v4() + ".jpg");
 
     const product = await Product.create({
       en,
@@ -25,13 +25,15 @@ const create = async (req, res, next) => {
       ru,
       price,
       categoryCode,
-      img: fileName,
+      imgs: fileNames.join("/"),
       descriptionEn,
       descriptionUa,
       descriptionRu,
     });
 
-    img.mv(path.resolve(__dirname, "..", "public", fileName));
+    imgs.forEach((image, index) => {
+      image.mv(path.resolve(__dirname, "..", "public", fileNames[index]));
+    });
     return res.json(product);
   } catch (error) {
     next(ApiError.incorrectRequest(error.message));
@@ -64,7 +66,7 @@ const getAll = async (req, res, next) => {
       "ru",
       "price",
       "sale",
-      "img",
+      "imgs",
       "categoryCode",
     ];
 
@@ -116,14 +118,27 @@ const getAll = async (req, res, next) => {
 };
 const getOne = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { id, userId } = req.params;
     const product = await Product.findOne({ where: { id } });
     const likesCount = await Like.count({ where: { productId: id } });
+    const ratings = await Rating.findAll({ where: { productId: id } });
+    const averageRating =
+      ratings.reduce((acc, val) => acc + val.rate, 0) / (ratings.length || 1);
+    const userRating = await Rating.findOne({ where: { userId: userId || 0 } });
     return res.json(
-      product ? { ...product.dataValues, likesCount } : undefined
+      product
+        ? {
+            ...product.dataValues,
+            likesCount,
+            rating: {
+              average: !ratings ? 0 : averageRating.toFixed(1),
+              user: userRating ? userRating.rate : 0,
+            },
+          }
+        : undefined
     );
   } catch (error) {
-    next(ApiError(error.message));
+    next(new ApiError(error.message));
   }
 };
 const addLike = async (req, res, next) => {
@@ -136,6 +151,37 @@ const addLike = async (req, res, next) => {
     const like = await Like.create({ userId: req.user.id, productId });
 
     return res.json({ productId });
+  } catch (error) {
+    next(ApiError.incorrectRequest(error.message));
+  }
+};
+const addRate = async (req, res, next) => {
+  try {
+    const { rate } = req.body;
+    const { productId } = req.params;
+    let rating;
+    if (!productId) {
+      return next(ApiError.incorrectRequest("productId is required"));
+    }
+    if (!rate) {
+      return next(ApiError.incorrectRequest("rate is required"));
+    }
+
+    const userRate = await Rating.findOne({where: { productId, userId: req.user.id }})
+    if (userRate) {
+      rating = await userRate.update({ rate })
+    } else {
+      rating = await Rating.create({
+        userId: req.user.id,
+        productId,
+        rate,
+      });
+    }
+    const ratings = await Rating.findAll({ where: { productId } });
+    const averageRating =
+      ratings.reduce((acc, val) => acc + val.rate, 0) / (ratings.length || 1);
+
+    return res.json({ productId, rate, averageRating: !ratings ? 0 : averageRating.toFixed(1) });
   } catch (error) {
     next(ApiError.incorrectRequest(error.message));
   }
@@ -171,6 +217,17 @@ const getLikedProductIds = async (req, res, next) => {
 };
 const getLikedProducts = async (req, res, next) => {
   try {
+    const attributes = [
+      "id",
+      "en",
+      "ua",
+      "ru",
+      "price",
+      "sale",
+      "imgs",
+      "categoryCode",
+    ];
+
     const userLikes = await Like.findAll({ where: { userId: req.user.id } });
 
     const likedProductIds = userLikes.map((like) => {
@@ -183,6 +240,7 @@ const getLikedProducts = async (req, res, next) => {
           [Op.in]: likedProductIds,
         },
       },
+      attributes,
     });
 
     return res.json(likedProducts);
@@ -200,4 +258,5 @@ module.exports = {
   getLikedProductIds,
   getLikedProducts,
   updateDescription,
+  addRate,
 };

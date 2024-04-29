@@ -1,6 +1,6 @@
 const uuid = require("uuid");
 const path = require("path");
-const { Product, Like, Rating } = require("../models");
+const { Product, Like, Rating, ProductSubcategory } = require("../models");
 const ApiError = require("../err/ApiError");
 const { Op } = require("sequelize");
 
@@ -124,7 +124,9 @@ const getOne = async (req, res, next) => {
     const ratings = await Rating.findAll({ where: { productId: id } });
     const averageRating =
       ratings.reduce((acc, val) => acc + val.rate, 0) / (ratings.length || 1);
-    const userRating = await Rating.findOne({ where: { userId: userId || 0 } });
+    const userRating = await Rating.findOne({
+      where: { userId: userId || 0, productId: id },
+    });
     return res.json(
       product
         ? {
@@ -167,9 +169,11 @@ const addRate = async (req, res, next) => {
       return next(ApiError.incorrectRequest("rate is required"));
     }
 
-    const userRate = await Rating.findOne({where: { productId, userId: req.user.id }})
+    const userRate = await Rating.findOne({
+      where: { productId, userId: req.user.id },
+    });
     if (userRate) {
-      rating = await userRate.update({ rate })
+      rating = await userRate.update({ rate });
     } else {
       rating = await Rating.create({
         userId: req.user.id,
@@ -181,7 +185,11 @@ const addRate = async (req, res, next) => {
     const averageRating =
       ratings.reduce((acc, val) => acc + val.rate, 0) / (ratings.length || 1);
 
-    return res.json({ productId, rate, averageRating: !ratings ? 0 : averageRating.toFixed(1) });
+    return res.json({
+      productId,
+      rate,
+      averageRating: !ratings ? 0 : averageRating.toFixed(1),
+    });
   } catch (error) {
     next(ApiError.incorrectRequest(error.message));
   }
@@ -248,6 +256,38 @@ const getLikedProducts = async (req, res, next) => {
     next(ApiError.incorrectRequest(error.message));
   }
 };
+const getProductsWithSubcategory = async (req, res, next) => {
+  try {
+    const { subcategoryCode } = req.params;
+    const attributes = [
+      "id",
+      "en",
+      "ua",
+      "ru",
+      "price",
+      "sale",
+      "imgs",
+      "categoryCode",
+    ];
+
+    const productSubcategories = await ProductSubcategory.findAll({
+      where: {
+        subcategoryCode,
+      },
+    });
+    const productIds = productSubcategories.map((ps) => ps.productId);
+    const products = await Product.findAndCountAll({
+      where: {
+        id: { [Op.in]: productIds },
+      },
+      attributes
+    });
+
+    return res.json(products);
+  } catch (error) {
+    return next(ApiError.incorrectRequest(error.message));
+  }
+};
 
 module.exports = {
   create,
@@ -259,4 +299,5 @@ module.exports = {
   getLikedProducts,
   updateDescription,
   addRate,
+  getProductsWithSubcategory
 };

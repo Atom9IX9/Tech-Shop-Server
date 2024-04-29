@@ -7,7 +7,8 @@ const {
   getLikedProductIds,
   getLikedProducts,
   updateDescription,
-  addRate
+  addRate,
+  getProductsWithSubcategory
 } = require("../controllers/productController");
 
 const Router = require("express");
@@ -25,5 +26,6 @@ router.get("/liked-products", authMiddleware, getLikedProducts);
 router.put("/:id/description", checkRole("ADMIN"), updateDescription)
 router.get("/", getAll);
 router.get("/:id/user/:userId", getOne);
+router.get("/subcategory/:subcategoryCode", getProductsWithSubcategory);
 
 module.exports = router;

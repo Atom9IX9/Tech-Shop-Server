@@ -36,7 +36,7 @@ const Product = sequelize.define("product", {
   ru: { type: DataTypes.STRING, unique: true },
   price: { type: DataTypes.INTEGER, allowNull: false },
   sale: { type: DataTypes.FLOAT, defaultValue: 0, allowNull: false },
-  imgs: { type: DataTypes.STRING, allowNull: false, unique: true },
+  imgs: { type: DataTypes.STRING({length: 512}), allowNull: false, unique: true, },
   descriptionEn: { type: DataTypes.TEXT, allowNull: true },
   descriptionUa: { type: DataTypes.TEXT, allowNull: true },
   descriptionRu: { type: DataTypes.TEXT, allowNull: true },
@@ -58,7 +58,14 @@ const Category = sequelize.define("category", {
 
 const Subcategory = sequelize.define("subcategory", {
   code: { type: DataTypes.STRING, unique: true, primaryKey: true },
+  en: { type: DataTypes.STRING, unique: true, allowNull: false },
+  ua: { type: DataTypes.STRING, unique: true, allowNull: false },
+  ru: { type: DataTypes.STRING, unique: true, allowNull: false },
 });
+
+const ProductSubcategory = sequelize.define("productSubcategory", {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true }
+})
 
 User.hasOne(Basket);
 Basket.belongsTo(User);
@@ -88,6 +95,14 @@ Like.belongsTo(User);
 Product.hasMany(Like);
 Like.belongsTo(Product);
 
+Subcategory.belongsTo(Category)
+Category.hasMany(Subcategory)
+
+ProductSubcategory.belongsTo(Product)
+ProductSubcategory.belongsTo(Subcategory)
+Subcategory.hasMany(ProductSubcategory)
+Product.hasMany(ProductSubcategory)
+
 module.exports = {
   User,
   Basket,
@@ -97,4 +112,6 @@ module.exports = {
   ProductInfo,
   Rating,
   Like,
+  Subcategory,
+  ProductSubcategory
 };

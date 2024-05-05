@@ -4,7 +4,8 @@ const {
   removeCategory,
   createSubcategory,
   createProductSubcategory,
-  getProductSubcategories
+  getProductSubcategories,
+  getSubcategoriesWithCategory
 } = require("../controllers/categoryController");
 
 const Router = require("express");
@@ -14,6 +15,7 @@ const router = new Router();
 
 router.post("/", checkRole("ADMIN"), create);
 router.post("/subcategory", checkRole("ADMIN"), createSubcategory);
+router.get("/:categoryCode", getSubcategoriesWithCategory);
 router.post("/productSubcategory", checkRole("ADMIN"), createProductSubcategory);
 router.get("/productSubcategory/:productId", getProductSubcategories);
 router.delete("/:code", checkRole("ADMIN"), removeCategory);

@@ -104,6 +104,16 @@ const removeCategory = async (req, res, next) => {
   }
 };
 
+const getSubcategoriesWithCategory = async (req, res, next) => {
+  try {
+    const { categoryCode } = req.params
+
+    const subcategories = await Subcategory.findAll({where: { categoryCode }})
+    return res.json(subcategories)
+  } catch (error) {
+    return next(ApiError.incorrectRequest(error.message))
+  }
+} 
 module.exports = {
   create,
   getAll,
@@ -111,4 +121,5 @@ module.exports = {
   createSubcategory,
   createProductSubcategory,
   getProductSubcategories,
+  getSubcategoriesWithCategory
 };

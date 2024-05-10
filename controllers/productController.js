@@ -1,6 +1,12 @@
 const uuid = require("uuid");
 const path = require("path");
-const { Product, Like, Rating, ProductSubcategory } = require("../models");
+const {
+  Product,
+  Like,
+  Rating,
+  ProductSubcategory,
+  BasketProduct,
+} = require("../models");
 const ApiError = require("../err/ApiError");
 const { Op } = require("sequelize");
 
@@ -119,23 +125,38 @@ const getAll = async (req, res, next) => {
 const getOne = async (req, res, next) => {
   try {
     const { id, userId } = req.params;
-    const product = await Product.findOne({ where: { id } });
-    const likesCount = await Like.count({ where: { productId: id } });
-    const ratings = await Rating.findAll({ where: { productId: id } });
-    const averageRating =
-      ratings.reduce((acc, val) => acc + val.rate, 0) / (ratings.length || 1);
-    const userRating = await Rating.findOne({
+    const productPromise = Product.findOne({ where: { id } });
+    const likesCountPromise = Like.count({ where: { productId: id } });
+    const ratingsPromise = Rating.findAll({ where: { productId: id } });
+    const userRatingPromise = Rating.findOne({
       where: { userId: userId || 0, productId: id },
     });
+    const isInBasketPromise = BasketProduct.findOne({
+      where: { productId: id, userId },
+    });
+    const [ratings, likesCount, product, userRating, isInBasket] =
+      await Promise.allSettled([
+        ratingsPromise,
+        likesCountPromise,
+        productPromise,
+        userRatingPromise,
+        isInBasketPromise,
+      ]);
+
+    const averageRating =
+      ratings.value.reduce((acc, val) => acc + val.rate, 0) /
+      (ratings.value.length || 1);
+
     return res.json(
       product
         ? {
-            ...product.dataValues,
-            likesCount,
+            ...product.value.dataValues,
+            likesCount: likesCount.value,
             rating: {
-              average: !ratings ? 0 : averageRating.toFixed(1),
-              user: userRating ? userRating.rate : 0,
+              average: Number(!ratings.value ? 0 : averageRating.toFixed(1)),
+              user: userRating.value ? userRating.value.rate : 0,
             },
+            isInBasket: !!isInBasket.value,
           }
         : undefined
     );
@@ -280,7 +301,7 @@ const getProductsWithSubcategory = async (req, res, next) => {
       where: {
         id: { [Op.in]: productIds },
       },
-      attributes
+      attributes,
     });
 
     return res.json(products);
@@ -299,5 +320,5 @@ module.exports = {
   getLikedProducts,
   updateDescription,
   addRate,
-  getProductsWithSubcategory
+  getProductsWithSubcategory,
 };

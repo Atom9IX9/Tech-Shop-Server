@@ -6,6 +6,7 @@ const basketRouter = new Router()
 
 basketRouter.post("/", authMiddleware, basketController.createBasket)
 basketRouter.get("/", authMiddleware, basketController.getUserBasket)
+basketRouter.get("/:basketId/products", authMiddleware, basketController.getUserBasketProducts)
 basketRouter.post("/product", authMiddleware, basketController.createBasketProduct)
 
 module.exports = basketRouter

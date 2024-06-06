@@ -6,6 +6,7 @@ const {
   Rating,
   ProductSubcategory,
   BasketProduct,
+  Basket,
 } = require("../models");
 const ApiError = require("../err/ApiError");
 const { Op } = require("sequelize");
@@ -131,8 +132,12 @@ const getOne = async (req, res, next) => {
     const userRatingPromise = Rating.findOne({
       where: { userId: userId || 0, productId: id },
     });
+    let basket;
+    if (userId) {
+      basket = await Basket.findOne({where: { userId }})
+    }
     const isInBasketPromise = BasketProduct.findOne({
-      where: { productId: id, userId },
+      where: { productId: id, basketId: basket.id },
     });
     const [ratings, likesCount, product, userRating, isInBasket] =
       await Promise.allSettled([
@@ -142,6 +147,7 @@ const getOne = async (req, res, next) => {
         userRatingPromise,
         isInBasketPromise,
       ]);
+    console.log(isInBasket.value, !!isInBasket.value)
 
     const averageRating =
       ratings.value.reduce((acc, val) => acc + val.rate, 0) /

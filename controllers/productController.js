@@ -133,21 +133,19 @@ const getOne = async (req, res, next) => {
       where: { userId: userId || 0, productId: id },
     });
     let basket;
+    let isInBasket = false;
     if (userId) {
-      basket = await Basket.findOne({where: { userId }})
+      basket = await Basket.findOne({ where: { userId } });
     }
-    const isInBasketPromise = BasketProduct.findOne({
-      where: { productId: id, basketId: basket.id },
-    });
-    const [ratings, likesCount, product, userRating, isInBasket] =
-      await Promise.allSettled([
-        ratingsPromise,
-        likesCountPromise,
-        productPromise,
-        userRatingPromise,
-        isInBasketPromise,
-      ]);
-    console.log(isInBasket.value, !!isInBasket.value)
+    if (basket) {
+      isInBasket = !!(await BasketProduct.findOne({
+        where: { productId: id, basketId: basket.id },
+      }));
+    }
+
+    const [ratings, likesCount, product, userRating] = await Promise.allSettled(
+      [ratingsPromise, likesCountPromise, productPromise, userRatingPromise]
+    );
 
     const averageRating =
       ratings.value.reduce((acc, val) => acc + val.rate, 0) /
@@ -162,7 +160,7 @@ const getOne = async (req, res, next) => {
               average: Number(!ratings.value ? 0 : averageRating.toFixed(1)),
               user: userRating.value ? userRating.value.rate : 0,
             },
-            isInBasket: !!isInBasket.value,
+            isInBasket,
           }
         : undefined
     );

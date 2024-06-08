@@ -24,7 +24,14 @@ const create = async (req, res, next) => {
       descriptionRu,
     } = req.body;
     const { imgs } = req.files;
-    let fileNames = imgs.map(() => uuid.v4() + ".jpg");
+    if (!imgs) {
+      return next(ApiError.incorrectRequest("imgs_is_empty"))
+    }
+
+    let fileNames =
+      Array.isArray(imgs)
+        ? imgs.map(() => uuid.v4() + ".jpg")
+        : [uuid.v4() + ".jpg"];
 
     const product = await Product.create({
       en,
@@ -38,9 +45,14 @@ const create = async (req, res, next) => {
       descriptionRu,
     });
 
-    imgs.forEach((image, index) => {
-      image.mv(path.resolve(__dirname, "..", "public", fileNames[index]));
-    });
+    if(Array.isArray(imgs)) {
+      imgs.forEach((image, index) => {
+        image.mv(path.resolve(__dirname, "..", "public", fileNames[index]));
+      });
+    } else {
+      imgs.mv(path.resolve(__dirname, "..", "public", fileNames[0]))
+    }
+    
     return res.json(product);
   } catch (error) {
     next(ApiError.incorrectRequest(error.message));

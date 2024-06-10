@@ -52,23 +52,39 @@ class BasketController {
         where: { basketId },
       });
       const productIds = basketProducts.map((bp) => bp.productId);
-      const products = await Product.findAll({
+      const productCounts = basketProducts.map((bp) => bp.count);
+      let products = await Product.findAll({
         where: {
           id: { [Op.in]: productIds },
         },
-        attributes: [
-          "en",
-          "ua",
-          "ru",
-          "id",
-          "imgs",
-          "price",
-          "sale"
-        ]
+        attributes: ["en", "ua", "ru", "id", "imgs", "price", "sale"],
       });
-      return res.json(products)
+      products = products.map((p, i) => {
+        return { ...p.dataValues, count: productCounts[i] };
+      });
+      return res.json(products);
     } catch (error) {
       return next(new ApiError(400, error.message));
+    }
+  }
+
+  async setBasketCount(req, res, next) {
+    try {
+      const { productId } = req.params;
+      const basket = await Basket.findOne({where: { userId: req.user.id }})
+      const basketProduct = await BasketProduct.findOne({
+        where: {
+          basketId: basket.id,
+          productId,
+        },
+      });
+      if (req.body.count !== basketProduct.count) {
+        basketProduct.update({count: req.body.count})
+      }
+
+      return res.json(basketProduct);
+    } catch (error) {
+      return next(new ApiError(error.message));
     }
   }
 }

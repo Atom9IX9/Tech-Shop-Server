@@ -8,7 +8,8 @@ const {
   getLikedProducts,
   updateDescription,
   addRate,
-  getProductsWithSubcategory
+  getProductsWithSubcategory,
+  setDiscount
 } = require("../controllers/productController");
 
 const Router = require("express");
@@ -27,5 +28,6 @@ router.put("/:id/description", checkRole("ADMIN"), updateDescription)
 router.get("/", getAll);
 router.get("/:id/user/:userId", getOne);
 router.get("/subcategory/:subcategoryCode", getProductsWithSubcategory);
+router.put("/discount/:productId", checkRole("ADMIN"), setDiscount)
 
 module.exports = router;

@@ -25,13 +25,12 @@ const create = async (req, res, next) => {
     } = req.body;
     const { imgs } = req.files;
     if (!imgs) {
-      return next(ApiError.incorrectRequest("imgs_is_empty"))
+      return next(ApiError.incorrectRequest("imgs_is_empty"));
     }
 
-    let fileNames =
-      Array.isArray(imgs)
-        ? imgs.map(() => uuid.v4() + ".jpg")
-        : [uuid.v4() + ".jpg"];
+    let fileNames = Array.isArray(imgs)
+      ? imgs.map(() => uuid.v4() + ".jpg")
+      : [uuid.v4() + ".jpg"];
 
     const product = await Product.create({
       en,
@@ -45,14 +44,14 @@ const create = async (req, res, next) => {
       descriptionRu,
     });
 
-    if(Array.isArray(imgs)) {
+    if (Array.isArray(imgs)) {
       imgs.forEach((image, index) => {
         image.mv(path.resolve(__dirname, "..", "public", fileNames[index]));
       });
     } else {
-      imgs.mv(path.resolve(__dirname, "..", "public", fileNames[0]))
+      imgs.mv(path.resolve(__dirname, "..", "public", fileNames[0]));
     }
-    
+
     return res.json(product);
   } catch (error) {
     next(ApiError.incorrectRequest(error.message));
@@ -325,6 +324,36 @@ const getProductsWithSubcategory = async (req, res, next) => {
     return next(ApiError.incorrectRequest(error.message));
   }
 };
+const setDiscount = async (req, res, next) => {
+  try {
+    const { dropTo, discountPercent } = req.body;
+    const { productId } = req.params;
+
+    if (!dropTo && !discountPercent) {
+      return next(ApiError.incorrectRequest("without_body_discount"));
+    }
+    if (!productId) {
+      return next(ApiError.incorrectRequest("productId_is_undefined"));
+    }
+
+    const product = await Product.findOne({ where: { id: productId } });
+
+    if (dropTo) {
+      const discount = Number(
+        ((100 - (dropTo * 100) / product.dataValues.price) / 100).toFixed(3)
+      );
+      await product.update({ sale: discount });
+      return res.json({ discount });
+    }
+
+    if (discountPercent) {
+      await product.update({ sale: discountPercent });
+      return res.json({ discount: discountPercent });
+    }
+  } catch (error) {
+    return next(new ApiError(400, error.message, "try-catch server error"));
+  }
+};
 
 module.exports = {
   create,
@@ -337,4 +366,5 @@ module.exports = {
   updateDescription,
   addRate,
   getProductsWithSubcategory,
+  setDiscount,
 };

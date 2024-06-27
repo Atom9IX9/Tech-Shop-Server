@@ -329,7 +329,7 @@ const setDiscount = async (req, res, next) => {
     const { dropTo, discountPercent } = req.body;
     const { productId } = req.params;
 
-    if (!dropTo && !discountPercent) {
+    if (!dropTo && !discountPercent && discountPercent !== 0) {
       return next(ApiError.incorrectRequest("without_body_discount"));
     }
     if (!productId) {
@@ -342,13 +342,31 @@ const setDiscount = async (req, res, next) => {
       const discount = Number(
         ((100 - (dropTo * 100) / product.dataValues.price) / 100).toFixed(3)
       );
-      await product.update({ sale: discount });
-      return res.json({ discount });
+      await product.update({
+        sale: discount,
+        priceWithDiscount: dropTo || null,
+      });
+      return res.json({ discount, priceWithDiscount: dropTo || null });
     }
 
-    if (discountPercent) {
-      await product.update({ sale: discountPercent });
-      return res.json({ discount: discountPercent });
+    if (discountPercent || discountPercent === 0) {
+      const discountedValue = Math.round(
+        product.dataValues.price * discountPercent
+      );
+      let newPrice;
+      if (discountedValue) {
+        newPrice = product.dataValues.price - discountedValue;
+      } else {
+        newPrice = null;
+      }
+      await product.update({
+        sale: discountPercent,
+        priceWithDiscount: newPrice,
+      });
+      return res.json({
+        discount: discountPercent,
+        priceWithDiscount: newPrice,
+      });
     }
   } catch (error) {
     return next(new ApiError(400, error.message, "try-catch server error"));

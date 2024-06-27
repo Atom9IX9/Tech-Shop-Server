@@ -36,6 +36,7 @@ const Product = sequelize.define("product", {
   ua: { type: DataTypes.STRING, unique: true },
   ru: { type: DataTypes.STRING, unique: true },
   price: { type: DataTypes.INTEGER, allowNull: false },
+  priceWithDiscount: { type: DataTypes.INTEGER, allowNull: true, defaultValue: null },
   sale: { type: DataTypes.FLOAT, defaultValue: 0, allowNull: false },
   imgs: { type: DataTypes.STRING({length: 512}), allowNull: false, unique: true, },
   descriptionEn: { type: DataTypes.TEXT, allowNull: true },

@@ -65,7 +65,7 @@ class BasketController {
         where: {
           id: { [Op.in]: productIds },
         },
-        attributes: ["en", "ua", "ru", "id", "imgs", "price", "sale"],
+        attributes: ["en", "ua", "ru", "id", "imgs", "price", "sale", "priceWithDiscount"],
       });
       products = products.map((p) => {
         return {

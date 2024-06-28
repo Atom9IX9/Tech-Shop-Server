@@ -84,6 +84,7 @@ const getAll = async (req, res, next) => {
       "ru",
       "price",
       "sale",
+      "priceWithDiscount",
       "imgs",
       "categoryCode",
     ];
@@ -346,7 +347,7 @@ const setDiscount = async (req, res, next) => {
         sale: discount,
         priceWithDiscount: dropTo || null,
       });
-      return res.json({ discount, priceWithDiscount: dropTo || null });
+      return res.json({ discount, priceWithDiscount: Number(dropTo) || null });
     }
 
     if (discountPercent || discountPercent === 0) {

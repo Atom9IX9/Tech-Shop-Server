@@ -38,7 +38,10 @@ class BasketController {
   async getUserBasket(req, res, next) {
     try {
       const basket = await Basket.findOne({ where: { userId: req.user.id } });
-      return res.json(basket);
+      const productsInBasket = await BasketProduct.count({
+        where: { basketId: basket.dataValues.id },
+      });
+      return res.json({...basket.dataValues, productsInBasket});
     } catch (error) {
       return next(ApiError.incorrectRequest(error.message));
     }
@@ -65,7 +68,16 @@ class BasketController {
         where: {
           id: { [Op.in]: productIds },
         },
-        attributes: ["en", "ua", "ru", "id", "imgs", "price", "sale", "priceWithDiscount"],
+        attributes: [
+          "en",
+          "ua",
+          "ru",
+          "id",
+          "imgs",
+          "price",
+          "sale",
+          "priceWithDiscount",
+        ],
       });
       products = products.map((p) => {
         return {

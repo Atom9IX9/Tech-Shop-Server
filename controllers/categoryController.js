@@ -6,13 +6,17 @@ const {
 } = require("../models/index");
 const uuid = require("uuid");
 const path = require("path");
-const { where, Op } = require("sequelize");
+const { Op } = require("sequelize");
 
 const create = async (req, res, next) => {
   try {
     const { icon } = req.files;
     const { en, ua, ru } = req.body;
-    const code = en.toLowerCase().split(" ").join("_");
+    const code = en
+      .toLowerCase()
+      .replace(/ /gi, "_")
+      .replace(/[^A-Za-z0-9_]/gi, "");
+      
     let fileName = uuid.v4() + ".jpg";
 
     const category = await Category.create({
@@ -33,7 +37,10 @@ const create = async (req, res, next) => {
 const createSubcategory = async (req, res, next) => {
   try {
     const { en, ua, ru, categoryCode } = req.body;
-    const code = en.toLowerCase().split(" ").join("_");
+    const code = en
+      .toLowerCase()
+      .replace(/ /gi, "_")
+      .replace(/[^A-Za-z0-9_]/gi, "");
 
     const subcategory = await Subcategory.create({
       en,
@@ -68,12 +75,14 @@ const getProductSubcategories = async (req, res, next) => {
     const productSubcategories = await ProductSubcategory.findAll({
       where: { productId },
     });
-    const productSubcategoriesCodes = productSubcategories.map(ps => ps.subcategoryCode)
+    const productSubcategoriesCodes = productSubcategories.map(
+      (ps) => ps.subcategoryCode
+    );
     const subcategories = await Subcategory.findAll({
       where: {
-        code: {[Op.in]: productSubcategoriesCodes}
-      }
-    })
+        code: { [Op.in]: productSubcategoriesCodes },
+      },
+    });
     return res.json(subcategories);
   } catch (error) {
     return next(ApiError.incorrectRequest(error.message));
@@ -106,14 +115,16 @@ const removeCategory = async (req, res, next) => {
 
 const getSubcategoriesWithCategory = async (req, res, next) => {
   try {
-    const { categoryCode } = req.params
+    const { categoryCode } = req.params;
 
-    const subcategories = await Subcategory.findAll({where: { categoryCode }})
-    return res.json(subcategories)
+    const subcategories = await Subcategory.findAll({
+      where: { categoryCode },
+    });
+    return res.json(subcategories);
   } catch (error) {
-    return next(ApiError.incorrectRequest(error.message))
+    return next(ApiError.incorrectRequest(error.message));
   }
-} 
+};
 module.exports = {
   create,
   getAll,
@@ -121,5 +132,5 @@ module.exports = {
   createSubcategory,
   createProductSubcategory,
   getProductSubcategories,
-  getSubcategoriesWithCategory
+  getSubcategoriesWithCategory,
 };

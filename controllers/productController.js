@@ -91,7 +91,7 @@ const getAll = async (req, res, next) => {
 
     let products;
 
-    if (category) {
+    if (category && !like) {
       products = await Product.findAndCountAll({
         where: { categoryCode: category },
         limit,
@@ -116,6 +116,11 @@ const getAll = async (req, res, next) => {
           break;
         }
       }
+
+      if (category) {
+        where.categoryCode = category
+      }
+
       products = await Product.findAndCountAll({
         limit,
         offset,

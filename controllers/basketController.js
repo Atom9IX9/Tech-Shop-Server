@@ -41,7 +41,7 @@ class BasketController {
       const productsInBasket = await BasketProduct.count({
         where: { basketId: basket.dataValues.id },
       });
-      return res.json({...basket.dataValues, productsInBasket});
+      return res.json({ ...basket.dataValues, productsInBasket });
     } catch (error) {
       return next(ApiError.incorrectRequest(error.message));
     }
@@ -107,7 +107,22 @@ class BasketController {
 
       return res.json(basketProduct);
     } catch (error) {
-      return next(new ApiError(error.message));
+      return next(new ApiError(400, error.message));
+    }
+  }
+
+  async deleteBasketProduct(req, res, next) {
+    try {
+      const { productId } = req.params;
+      const basket = await Basket.findOne({ where: req.user.id });
+
+      const deletedProduct = await BasketProduct.destroy({
+        where: { basketId: basket.dataValues.id, productId },
+      });
+
+      res.json({productId: Number(productId)})
+    } catch (error) {
+      return next(new ApiError(400, error.message));
     }
   }
 }

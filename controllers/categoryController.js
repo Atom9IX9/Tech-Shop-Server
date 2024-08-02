@@ -36,7 +36,7 @@ const create = async (req, res, next) => {
 
 const createSubcategory = async (req, res, next) => {
   try {
-    const { en, ua, ru, categoryCode } = req.body;
+    const { en, ua, ru, categoryCode, order } = req.body;
     const code = en
       .toLowerCase()
       .replace(/ /gi, "_")
@@ -47,6 +47,7 @@ const createSubcategory = async (req, res, next) => {
       ua,
       ru,
       code,
+      order,
       categoryCode,
     });
 
@@ -115,10 +116,10 @@ const removeCategory = async (req, res, next) => {
 
 const getSubcategoriesWithCategory = async (req, res, next) => {
   try {
-    const { categoryCode } = req.params;
+    const { categoryCode, order } = req.params;
 
     const subcategories = await Subcategory.findAll({
-      where: { categoryCode },
+      where: { categoryCode, order: order || 1 },
     });
     return res.json(subcategories);
   } catch (error) {

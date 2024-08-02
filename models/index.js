@@ -27,7 +27,7 @@ const Basket = sequelize.define("basket", {
 
 const BasketProduct = sequelize.define("basket_product", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  count: { type: DataTypes.INTEGER, defaultValue: 1 }
+  count: { type: DataTypes.INTEGER, defaultValue: 1 },
 });
 
 const Product = sequelize.define("product", {
@@ -36,9 +36,17 @@ const Product = sequelize.define("product", {
   ua: { type: DataTypes.STRING, unique: true },
   ru: { type: DataTypes.STRING, unique: true },
   price: { type: DataTypes.INTEGER, allowNull: false },
-  priceWithDiscount: { type: DataTypes.INTEGER, allowNull: true, defaultValue: null },
+  priceWithDiscount: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: null,
+  },
   sale: { type: DataTypes.FLOAT, defaultValue: 0, allowNull: false },
-  imgs: { type: DataTypes.STRING({length: 512}), allowNull: false, unique: true, },
+  imgs: {
+    type: DataTypes.STRING({ length: 512 }),
+    allowNull: false,
+    unique: true,
+  },
   descriptionEn: { type: DataTypes.TEXT, allowNull: true },
   descriptionUa: { type: DataTypes.TEXT, allowNull: true },
   descriptionRu: { type: DataTypes.TEXT, allowNull: true },
@@ -60,14 +68,15 @@ const Category = sequelize.define("category", {
 
 const Subcategory = sequelize.define("subcategory", {
   code: { type: DataTypes.STRING, unique: true, primaryKey: true },
+  order: { type: DataTypes.INTEGER, defaultValue: 1, allowNull: false },
   en: { type: DataTypes.STRING, unique: true, allowNull: false },
   ua: { type: DataTypes.STRING, unique: true, allowNull: false },
   ru: { type: DataTypes.STRING, unique: true, allowNull: false },
 });
 
 const ProductSubcategory = sequelize.define("productSubcategory", {
-  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true }
-})
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+});
 
 User.hasOne(Basket);
 Basket.belongsTo(User);
@@ -97,13 +106,13 @@ Like.belongsTo(User);
 Product.hasMany(Like);
 Like.belongsTo(Product);
 
-Subcategory.belongsTo(Category)
-Category.hasMany(Subcategory)
+Subcategory.belongsTo(Category);
+Category.hasMany(Subcategory);
 
-ProductSubcategory.belongsTo(Product)
-ProductSubcategory.belongsTo(Subcategory)
-Subcategory.hasMany(ProductSubcategory)
-Product.hasMany(ProductSubcategory)
+ProductSubcategory.belongsTo(Product);
+ProductSubcategory.belongsTo(Subcategory);
+Subcategory.hasMany(ProductSubcategory);
+Product.hasMany(ProductSubcategory);
 
 module.exports = {
   User,
@@ -115,5 +124,5 @@ module.exports = {
   Rating,
   Like,
   Subcategory,
-  ProductSubcategory
+  ProductSubcategory,
 };

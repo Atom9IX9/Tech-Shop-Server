@@ -15,10 +15,10 @@ const router = new Router();
 
 router.post("/", checkRole("ADMIN"), create);
 router.post("/subcategory", checkRole("ADMIN"), createSubcategory);
-router.get("/:categoryCode", getSubcategoriesWithCategory);
 router.post("/productSubcategory", checkRole("ADMIN"), createProductSubcategory);
 router.get("/productSubcategory/:productId", getProductSubcategories);
 router.delete("/:code", checkRole("ADMIN"), removeCategory);
+router.get("/:categoryCode/:order?", getSubcategoriesWithCategory);
 router.get("/", getAll);
 
 module.exports = router;

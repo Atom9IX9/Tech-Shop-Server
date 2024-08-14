@@ -9,7 +9,9 @@ const {
   updateDescription,
   addRate,
   getProductsWithSubcategory,
-  setDiscount
+  setDiscount,
+  getWatchedProducts,
+  createWatchedProducts
 } = require("../controllers/productController");
 
 const Router = require("express");
@@ -29,5 +31,7 @@ router.get("/", getAll);
 router.get("/:id/user/:userId", getOne);
 router.get("/subcategory/:subcategoryCode", getProductsWithSubcategory);
 router.put("/discount/:productId", checkRole("ADMIN"), setDiscount)
+router.get("/watched", authMiddleware, getWatchedProducts)
+router.post("/watched/:productId", authMiddleware, createWatchedProducts)
 
 module.exports = router;

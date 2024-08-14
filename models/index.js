@@ -78,11 +78,21 @@ const ProductSubcategory = sequelize.define("productSubcategory", {
   id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
 });
 
+const WatchedProduct = sequelize.define("watchedProducts", {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+})
+
 User.hasOne(Basket);
 Basket.belongsTo(User);
 
 User.hasMany(Rating);
 Rating.belongsTo(User);
+
+User.hasMany(WatchedProduct)
+WatchedProduct.belongsTo(User)
+
+Product.hasMany(WatchedProduct);
+WatchedProduct.belongsTo(Product)
 
 Basket.hasMany(BasketProduct);
 BasketProduct.belongsTo(Basket);
@@ -125,4 +135,5 @@ module.exports = {
   Like,
   Subcategory,
   ProductSubcategory,
+  WatchedProduct
 };

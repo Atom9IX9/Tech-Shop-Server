@@ -7,6 +7,7 @@ const {
   ProductSubcategory,
   BasketProduct,
   Basket,
+  WatchedProduct,
 } = require("../models");
 const ApiError = require("../err/ApiError");
 const { Op } = require("sequelize");
@@ -118,7 +119,7 @@ const getAll = async (req, res, next) => {
       }
 
       if (category) {
-        where.categoryCode = category
+        where.categoryCode = category;
       }
 
       products = await Product.findAndCountAll({
@@ -379,6 +380,61 @@ const setDiscount = async (req, res, next) => {
   }
 };
 
+const getWatchedProducts = async (req, res, next) => {
+  const attributes = [
+    "id",
+    "en",
+    "ua",
+    "ru",
+    "price",
+    "sale",
+    "priceWithDiscount",
+    "imgs",
+    "categoryCode",
+  ];
+
+  try {
+    const watchedProducts = await WatchedProduct.findAll({
+      where: {
+        userId: req.user.id,
+      },
+    });
+    const watchedProductsIds = watchedProducts.map((wp) => wp.productId);
+    const responseProducts = await Product.findAll({
+      where: {
+        id: { [Op.in]: watchedProductsIds },
+      },
+      attributes,
+    });
+    return res.json(responseProducts);
+  } catch (error) {
+    return next(new ApiError(400, error.message, "try-catch server error"));
+  }
+};
+
+const createWatchedProducts = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+    if (!productId) {
+      return next(ApiError.incorrectRequest("without_productId"));
+    }
+    let watchedProduct;
+    watchedProduct = await WatchedProduct.findOne({
+      where: { productId, userId: req.user.id },
+    });
+    if (!watchedProduct) {
+      watchedProduct = await WatchedProduct.create({
+        productId,
+        userId: req.user.id,
+      });
+    }
+
+    res.json(watchedProduct);
+  } catch (error) {
+    return next(new ApiError(400, error.message, "try-catch server error"));
+  }
+};
+
 module.exports = {
   create,
   getAll,
@@ -391,4 +447,6 @@ module.exports = {
   addRate,
   getProductsWithSubcategory,
   setDiscount,
+  getWatchedProducts,
+  createWatchedProducts,
 };

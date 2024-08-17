@@ -11,7 +11,8 @@ const {
   getProductsWithSubcategory,
   setDiscount,
   getWatchedProducts,
-  createWatchedProducts
+  createWatchedProducts,
+  getRatedProducts,
 } = require("../controllers/productController");
 
 const Router = require("express");
@@ -26,12 +27,13 @@ router.post("/rating/:productId", authMiddleware, addRate);
 router.delete("/like/:productId", authMiddleware, removeLike);
 router.get("/liked-ids", authMiddleware, getLikedProductIds);
 router.get("/liked-products", authMiddleware, getLikedProducts);
-router.put("/:id/description", checkRole("ADMIN"), updateDescription)
+router.put("/:id/description", checkRole("ADMIN"), updateDescription);
 router.get("/", getAll);
 router.get("/:id/user/:userId", getOne);
 router.get("/subcategory/:subcategoryCode", getProductsWithSubcategory);
-router.put("/discount/:productId", checkRole("ADMIN"), setDiscount)
-router.get("/watched", authMiddleware, getWatchedProducts)
-router.post("/watched/:productId", authMiddleware, createWatchedProducts)
+router.put("/discount/:productId", checkRole("ADMIN"), setDiscount);
+router.get("/watched", authMiddleware, getWatchedProducts);
+router.post("/watched/:productId", authMiddleware, createWatchedProducts);
+router.get("/rated", authMiddleware, getRatedProducts);
 
 module.exports = router;

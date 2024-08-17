@@ -376,7 +376,7 @@ const setDiscount = async (req, res, next) => {
       });
     }
   } catch (error) {
-    return next(new ApiError(400, error.message, "try-catch server error"));
+    return next(new ApiError(500, error.message, "try-catch server error"));
   }
 };
 
@@ -408,7 +408,7 @@ const getWatchedProducts = async (req, res, next) => {
     });
     return res.json(responseProducts);
   } catch (error) {
-    return next(new ApiError(400, error.message, "try-catch server error"));
+    return next(new ApiError(500, error.message, "try-catch server error"));
   }
 };
 
@@ -431,7 +431,48 @@ const createWatchedProducts = async (req, res, next) => {
 
     res.json(watchedProduct);
   } catch (error) {
-    return next(new ApiError(400, error.message, "try-catch server error"));
+    return next(new ApiError(500, error.message, "try-catch server error"));
+  }
+};
+
+const getRatedProducts = async (req, res, next) => {
+  try {
+    const attributes = [
+      "id",
+      "en",
+      "ua",
+      "ru",
+      "price",
+      "sale",
+      "priceWithDiscount",
+      "imgs",
+      "categoryCode",
+    ];
+
+    const rates = await Rating.findAll({
+      where: {
+        userId: req.user.id,
+      },
+    });
+
+    const productIds = rates.map((r) => r.productId);
+    let products = await Product.findAll({
+      where: {
+        id: { [Op.in]: productIds },
+      },
+      attributes,
+    })
+    products = products.map((p) => {
+      for (rateData of rates) {
+        if (p.id === rateData.productId) {
+          return { ...p.dataValues, userRate: rateData.rate };
+        }
+      }
+    });
+
+    return res.json(products);
+  } catch (error) {
+    return next(new ApiError(500, error.message, "try-catch server error"));
   }
 };
 
@@ -449,4 +490,5 @@ module.exports = {
   setDiscount,
   getWatchedProducts,
   createWatchedProducts,
+  getRatedProducts,
 };

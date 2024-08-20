@@ -52,12 +52,6 @@ const Product = sequelize.define("product", {
   descriptionRu: { type: DataTypes.TEXT, allowNull: true },
 });
 
-const ProductInfo = sequelize.define("product_info", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  title: { type: DataTypes.STRING, allowNull: false },
-  description: { type: DataTypes.STRING, allowNull: false },
-});
-
 const Category = sequelize.define("category", {
   code: { type: DataTypes.STRING, unique: true, primaryKey: true },
   en: { type: DataTypes.STRING, unique: true, allowNull: false },
@@ -107,9 +101,6 @@ Product.belongsTo(BasketProduct);
 Product.hasMany(Rating);
 Rating.belongsTo(Product);
 
-Product.hasMany(ProductInfo);
-ProductInfo.belongsTo(Product);
-
 User.hasMany(Like);
 Like.belongsTo(User);
 
@@ -130,7 +121,6 @@ module.exports = {
   BasketProduct,
   Category,
   Product,
-  ProductInfo,
   Rating,
   Like,
   Subcategory,
